@@ -41,7 +41,7 @@ for (const apiConfig of nconf.get('api')) {
     const providerName = apiConfig['provider']
     const provider = providerRegistry[providerName]
     const handler = provider[path]
-    apiRouter.post(path, function (req, res, next) {
+    apiRouter.post(path, (req, res, next) => {
         const body = req.body
         winston.info(`request ${req.path} ${JSON.stringify(body, null, 2)}`)
         handler(body, override)
@@ -56,13 +56,17 @@ for (const apiConfig of nconf.get('api')) {
 // start server
 const host = nconf.get('host')
 const port = nconf.get('port')
+const endpoint = nconf.get('endpoint')
 const app = express()
 app.use(express.json())
-app.use(apiRouter)
+app.use(`/${endpoint}`, apiRouter)
+app.get('/ping', (req, res) => {
+    res.send('pong')
+})
 app.use((err, req, res, next) => {
     winston.error(`proxy failed: ${req.path}, reason: ${err.message}`)
     res.status(500).json(err)
 })
 app.listen(port, host, () => {
-    winston.info(`Proxy running at http://${host}:${port}/`)
+    winston.info(`Proxy running at http://${host}:${port}/${endpoint}`)
 })

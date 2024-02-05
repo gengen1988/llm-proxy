@@ -5,7 +5,7 @@ main()
 async function main() {
     const client = new OpenAI({ 
         apiKey: 'sk-123', 
-        baseURL: 'http://127.0.0.1:8000/' 
+        baseURL: 'http://127.0.0.1:8000/v1' 
     })
 
     const result = await client.chat.completions.create({

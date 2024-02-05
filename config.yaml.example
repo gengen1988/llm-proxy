@@ -1,17 +1,18 @@
 host: 0.0.0.0
 port: 8000
-log: info
+endpoint: v1
+log: debug
 
 api:
-  - path: /chat/completions
-    provider: vertex-dev
-    override:
-      model: gemini-pro
-
   # - path: /chat/completions
-  #   provider: perplexity-dev
+  #   provider: vertex-dev
   #   override:
-  #     model: mixtral-8x7b-instruct
+  #     model: gemini-pro
+
+  - path: /chat/completions
+    provider: perplexity-dev
+    override:
+      model: mixtral-8x7b-instruct
 
   # - path: /chat/completions
   #   provider: openai-dev
@@ -24,16 +25,18 @@ api:
 providers:
   - name: perplexity-dev
     module: perplexity
-    apiKey: pplx-123
+    apiKey: <REDACTED>
+    polyfills:
+      penaltyWhenConflict: presence # presence or frequency
 
   - name: vertex-dev
     module: vertex
-    apiKey: AIxxx # apply in google ai studio
+    apiKey: <REDACTED> # apply in google ai studio
     polyfills:
       paddingUserMessage: true
       mergeMessagesInSeries: true
 
   - name: openai-dev
     module: openai
-    apiKey: sk-123
-    # baseURL: xxx  # set when use compatible backend
+    apiKey: <REDACTED>
+    # baseURL: xxx # set when use compatible backend

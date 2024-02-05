@@ -4,7 +4,7 @@ const crypto = require('crypto')
 
 module.exports = function (config) {
     const apiKey = config['apiKey']
-    const polyfills = config['polyfills']
+    const polyfills = config['polyfills'] || {}
     const client = axios.create({
         baseURL: `https://generativelanguage.googleapis.com/v1beta`
     })
