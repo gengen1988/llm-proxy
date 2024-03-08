@@ -11,12 +11,13 @@ This project serves as a reverse proxy, unifying access to various leading AI se
 
 ## Supported Backends
 
-| Provider               | Chat Completions     | Embeddings Generation |
+| Provider               | Chat Completions     | Embeddings            |
 |------------------------|----------------------|-----------------------|
 | OpenAI                 | Yes                  | Yes                   |
 | OpenAI Compatibles     | Yes (config baseURL) | Yes                   |
 | Perplexity AI          | Yes                  | No                    |
 | Vertex AI (Gemini Pro) | Yes                  | No (work in progress) |
+| Anthropic              | Yes                  | No                    |
 
 ## Getting Started
 

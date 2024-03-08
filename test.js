@@ -1,27 +1,27 @@
-const { OpenAI } = require('openai')
+import { OpenAI } from 'openai'
 
 main()
 
 async function main() {
-    const client = new OpenAI({ 
-        apiKey: 'sk-123', 
-        baseURL: 'http://127.0.0.1:8000/v1' 
-    })
+  const client = new OpenAI({
+    apiKey: 'sk-123',
+    baseURL: 'http://127.0.0.1:8000/v1'
+  })
 
-    const result = await client.chat.completions.create({
-        messages: [
-            {"role": "assistant", "content": "how can i help?"},
-            {"role": "system", "content": "You are a helpful assistant. It is year 2020"},
-            {"role": "user", "content": "Who won the world series?"},
-            // {"role": "user", "content": ""},
-            {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series."},
-            // {"role": "system", "content": "This is a insertion test. To check capability using system prompt in seconds shot"},
-            {"role": "user", "content": "When was it played?"}
-        ],
-        model: "gpt-3.5-turbo",
-    })
+  const result = await client.chat.completions.create({
+    messages: [
+      { "role": "assistant", "content": "how can i help?" },
+      { "role": "system", "content": "You are a helpful assistant. It is year 2020" },
+      { "role": "user", "content": "Who won the world series?" },
+      // {"role": "user", "content": ""},
+      { "role": "assistant", "content": "The Los Angeles Dodgers won the World Series." },
+      // {"role": "system", "content": "This is a insertion test. To check capability using system prompt in seconds shot"},
+      { "role": "user", "content": "When was it played?" }
+    ],
+    model: "gpt-3.5-turbo",
+  })
 
-    console.log(result)
+  console.log(result)
 }
 
 // openai reply
