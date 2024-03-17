@@ -4,6 +4,8 @@ const winston = require('winston')
 module.exports = function (config) {
   const apiKey = config['apiKey']
   const polyfills = config['polyfills'] || {}
+  const { penaltyWhenConflict } = polyfills
+
   const client = axios.create({
     baseURL: 'https://api.perplexity.ai/',
     headers: {
@@ -15,20 +17,8 @@ module.exports = function (config) {
     '/chat/completions'(params, override) {
 
       // handle penalty incompatible
-      const penaltyWhenConflict = polyfills['penaltyWhenConflict']
       if (penaltyWhenConflict) {
-        if ('presence_penalty' in params && 'frequency_penalty' in params) {
-          winston.warn('Both presence_penalty and frequency_penalty are present in params')
-          if (penaltyWhenConflict === 'presence') {
-            delete params['frequency_penalty']
-          }
-          else if (penaltyWhenConflict === 'frequency') {
-            delete params['presence_penalty']
-          }
-          else {
-            winston.warn(`not recognized penalty: ${penaltyWhenConflict}`)
-          }
-        }
+        params = resolvePenaltyConflict(penaltyWhenConflict)
       }
 
       const body = { ...params, ...override }
@@ -42,4 +32,20 @@ module.exports = function (config) {
         })
     }
   }
+}
+
+function resolvePenaltyConflict(params, keepPenalty) {
+  if ('presence_penalty' in params && 'frequency_penalty' in params) {
+    winston.warn('Both presence_penalty and frequency_penalty are present in params')
+    if (keepPenalty === 'presence') {
+      delete params['frequency_penalty']
+    }
+    else if (keepPenalty === 'frequency') {
+      delete params['presence_penalty']
+    }
+    else {
+      winston.warn(`not recognized penalty: ${keepPenalty}`)
+    }
+  }
+  return params
 }

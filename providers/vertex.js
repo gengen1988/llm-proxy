@@ -5,6 +5,8 @@ const { randomUUID } = require('crypto')
 module.exports = function (config) {
   const apiKey = config['apiKey']
   const polyfills = config['polyfills'] || {}
+  const { paddingUserMessage, mergeMessagesInSeries } = polyfills
+
   const client = axios.create({
     baseURL: `https://generativelanguage.googleapis.com/v1beta`
   })
@@ -14,11 +16,11 @@ module.exports = function (config) {
       const model = override['model']
       let contents = fromOpenAIChatMessages(params.messages)
 
-      if (polyfills['paddingUserMessage']) {
+      if (paddingUserMessage) {
         contents = ensureFirstContentFromUser(contents)
       }
 
-      if (polyfills['mergeMessagesInSeries']) {
+      if (mergeMessagesInSeries) {
         contents = mergeRoles(contents)
       }
 
