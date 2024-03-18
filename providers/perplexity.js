@@ -2,9 +2,7 @@ const axios = require('axios')
 const winston = require('winston')
 
 module.exports = function (config) {
-  const apiKey = config['apiKey']
-  const polyfills = config['polyfills'] || {}
-  const { penaltyWhenConflict } = polyfills
+  const { apiKey, penaltyWhenConflict } = config
 
   const client = axios.create({
     baseURL: 'https://api.perplexity.ai/',

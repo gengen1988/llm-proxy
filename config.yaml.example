@@ -7,7 +7,7 @@ api:
   # - path: /chat/completions
   #   provider: vertex-dev
   #   override:
-  #     model: gemini-pro
+  #     model: gemini-1.0-pro
 
   # - path: /chat/completions
   #   provider: perplexity-dev
@@ -33,20 +33,16 @@ providers:
   - name: perplexity-dev
     module: perplexity
     apiKey: <REDACTED>
-    polyfills:
-      penaltyWhenConflict: presence # presence or frequency
+    penaltyWhenConflict: presence # presence or frequency
 
   - name: vertex-dev
     module: vertex
-    apiKey: <REDACTED>
-    polyfills:
-      paddingUserMessage: true
-      mergeMessagesInSeries: true
+    apiKey: <REDACTED> # apply it in https://aistudio.google.com/
 
   - name: openai-dev
     module: openai
     apiKey: <REDACTED>
-    # baseURL: xxx # set when use compatible backend
+    # baseURL: http://127.0.0.1:5000/ # set when use compatible backend
 
   - name: anthropic-dev
     module: anthropic

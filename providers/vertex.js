@@ -3,9 +3,7 @@ const winston = require('winston')
 const { randomUUID } = require('crypto')
 
 module.exports = function (config) {
-  const apiKey = config['apiKey']
-  const polyfills = config['polyfills'] || {}
-  const { paddingUserMessage, mergeMessagesInSeries } = polyfills
+  const { apiKey } = config
 
   const client = axios.create({
     baseURL: `https://generativelanguage.googleapis.com/v1beta`
@@ -13,16 +11,10 @@ module.exports = function (config) {
 
   return {
     '/chat/completions'(params, override) {
-      const model = override['model']
+      const { model } = override
       let contents = fromOpenAIChatMessages(params.messages)
-
-      if (paddingUserMessage) {
-        contents = ensureFirstContentFromUser(contents)
-      }
-
-      if (mergeMessagesInSeries) {
-        contents = mergeRoles(contents)
-      }
+      contents = ensureFirstContentFromUser(contents)
+      contents = mergeRoles(contents)
 
       const body = {
         contents
@@ -31,27 +23,44 @@ module.exports = function (config) {
       winston.debug(`body send to google: ${JSON.stringify(body, null, 2)}`)
       return client
         .post(`/models/${model}:generateContent`, body, {
-          params: {
-            key: apiKey
-          }
+          params: { key: apiKey }
         })
-        .then(res => {
-          const vertexReply = res.data
-          winston.debug(`google reply: ${JSON.stringify(vertexReply, null, 2)}`)
-          const openReply = {
-            id: randomUUID(),
-            object: 'chat.completion',
-            created: Math.round(new Date(res.headers.date) / 1000),
-            model,
-            choices: toOpenAIChatChoices(vertexReply.candidates)
-          }
-
-          return openReply
-        })
+        .then(res => toOpenAIChatResponse(res, model))
     },
 
     // '/embeddings': function (params, override) {
     // }
+  }
+}
+
+function toOpenAIChatResponse(vertexHTTPResponse, model) {
+  const { data } = vertexHTTPResponse
+  winston.debug(`convert google response: ${JSON.stringify(data, null, 2)}`)
+  return {
+    id: randomUUID(),
+    object: 'chat.completion',
+    created: Math.round(new Date(vertexHTTPResponse.headers.date) / 1000),
+    model,
+    choices: data.candidates.map(candidate => {
+      let messageContent = ''
+      if (candidate.content) {
+        messageContent = candidate.content.parts.map(part => part.text).join()
+      }
+      else {
+        // missing content, usually when safety guard triggered
+        winston.warn(`content not found in candidate: ${JSON.stringify(candidate, null, 2)}`)
+        messageContent = ''
+      }
+
+      return {
+        index: candidate.index,
+        message: {
+          role: 'assistant',
+          content: messageContent,
+        },
+        finish_reason: candidate.finishReason.toLowerCase()
+      }
+    })
   }
 }
 
@@ -61,17 +70,6 @@ function fromOpenAIChatMessages(messages) {
     parts: [
       { text: message.content }
     ]
-  }))
-}
-
-function toOpenAIChatChoices(candidates) {
-  return candidates.map(candidate => ({
-    index: candidate.index,
-    message: {
-      role: 'assistant',
-      content: candidate.content.parts.map(part => part.text).join()
-    },
-    finish_reason: candidate['finishReason'].toLowerCase()
   }))
 }
 

@@ -2,7 +2,8 @@ const { Anthropic } = require('@anthropic-ai/sdk')
 const winston = require('winston')
 
 module.exports = function (config) {
-  const apiKey = config['apiKey']
+  const { apiKey } = config
+
   const client = new Anthropic({ apiKey })
 
   return {
@@ -10,7 +11,7 @@ module.exports = function (config) {
       params = extractSystemPrompt(params)
       const body = { ...params, ...override }
       return client.messages.create(body)
-        .then(toOpenAIResponse)
+        .then(toOpenAIChatResponse)
     }
   }
 }
@@ -25,19 +26,21 @@ function extractSystemPrompt(params) {
   return params
 }
 
-function toOpenAIResponse(response) {
-  winston.debug(`convert anthropic response: ${JSON.stringify(response, null, 2)}`)
+function toOpenAIChatResponse(anthropicChatResponse) {
+  winston.debug(`convert anthropic response: ${JSON.stringify(anthropicChatResponse, null, 2)}`)
   return {
-    id: response.id,
-    model: response.model,
-    usage: response.usage,
+    id: anthropicChatResponse.id,
+    object: 'chat.completion',
+    model: anthropicChatResponse.model,
+    usage: anthropicChatResponse.usage,
     choices: [
       {
+        index: 0,
         message: {
-          role: response.role,
-          content: response.content[0].text
+          role: anthropicChatResponse.role,
+          content: anthropicChatResponse.content[0].text
         },
-        finish_reason: response.stop_reason
+        finish_reason: anthropicChatResponse.stop_reason
       }
     ],
   }
