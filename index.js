@@ -65,6 +65,7 @@ app.get('/ping', (req, res) => {
 })
 app.use((err, req, res, next) => {
   winston.error(`proxy failed: ${req.path}, reason: ${err.message}`)
+  console.error(err)
   res.status(500).json(err)
 })
 app.listen(port, host, () => {

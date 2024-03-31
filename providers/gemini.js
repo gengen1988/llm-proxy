@@ -1,6 +1,8 @@
 const axios = require('axios')
 const winston = require('winston')
 const { randomUUID } = require('crypto')
+const { encodingForModel, TiktokenModel } = require('js-tiktoken')
+
 
 module.exports = function (config) {
   const { apiKey } = config // apply api key in: https://aistudio.google.com/app/apikey
@@ -26,7 +28,10 @@ module.exports = function (config) {
         params: { key: apiKey },
       })
 
-      return toOpenAIChatResponse(response, model)
+      const chatResponse = toOpenAIChatResponse(response, model)
+      chatResponse.model = model
+      chatResponse.usage = calculateUsage(getPromptText(params), getCompletionText(chatResponse), model)
+      return chatResponse
     },
 
     async '/embeddings'(params, override) {
@@ -56,7 +61,6 @@ module.exports = function (config) {
           }
         ],
         model,
-        // usage to be done
       }
 
       return openAIEmbeddingResponse
@@ -64,14 +68,13 @@ module.exports = function (config) {
   }
 }
 
-function toOpenAIChatResponse(vertexHTTPResponse, model) {
+function toOpenAIChatResponse(vertexHTTPResponse) {
   const { data } = vertexHTTPResponse
   winston.debug(`convert google response: ${JSON.stringify(data, null, 2)}`)
   return {
     id: randomUUID(),
     object: 'chat.completion',
     created: Math.round(new Date(vertexHTTPResponse.headers.date) / 1000),
-    model,
     choices: data.candidates.map(candidate => {
       let messageContent = ''
       if (candidate.content) {
@@ -80,7 +83,6 @@ function toOpenAIChatResponse(vertexHTTPResponse, model) {
       else {
         // missing content, usually when safety guard triggered
         winston.warn(`content not found in candidate: ${JSON.stringify(candidate, null, 2)}`)
-        messageContent = ''
       }
 
       return {
@@ -89,9 +91,9 @@ function toOpenAIChatResponse(vertexHTTPResponse, model) {
           role: 'assistant',
           content: messageContent,
         },
-        finish_reason: candidate.finishReason.toLowerCase()
+        finish_reason: candidate.finishReason.toLowerCase(),
       }
-    })
+    }),
   }
 }
 
@@ -144,4 +146,37 @@ function mergeRoles(contents) {
   }
 
   return mergedContents
+}
+
+function calculateUsage(prompt, completion, model) {
+  let enc = null
+  try {
+    enc = encodingForModel(model)
+  }
+  catch {
+    winston.warn(`unrecogized model: ${model}, use gpt-3.5-turbo as fallback.`)
+    enc = encodingForModel('gpt-3.5-turbo')
+  }
+
+  const completionTokens = enc.encode(completion).length
+  const promptTokens = enc.encode(prompt).length
+  const totalTokens = completionTokens + promptTokens
+
+  return {
+    completion_tokens: completionTokens,
+    prompt_tokens: promptTokens,
+    total_tokens: totalTokens,
+  }
+}
+
+function getPromptText(data) {
+  const { messages } = data
+  const joinedContent = messages.map(message => message.content).join('\n')
+  return joinedContent
+}
+
+function getCompletionText(data) {
+  const { choices } = data
+  const joinedContent = choices.map(choice => choice.message.content).join('\n')
+  return joinedContent
 }
