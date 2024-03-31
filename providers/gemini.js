@@ -3,15 +3,16 @@ const winston = require('winston')
 const { randomUUID } = require('crypto')
 
 module.exports = function (config) {
-  const { apiKey } = config
+  const { apiKey } = config // apply api key in: https://aistudio.google.com/app/apikey
 
   const client = axios.create({
     baseURL: `https://generativelanguage.googleapis.com/v1beta`
   })
 
   return {
-    '/chat/completions'(params, override) {
-      const { model } = override
+    async '/chat/completions'(params, override) {
+      const model = override.model || params.model
+
       let contents = fromOpenAIChatMessages(params.messages)
       contents = ensureFirstContentFromUser(contents)
       contents = mergeRoles(contents)
@@ -21,15 +22,45 @@ module.exports = function (config) {
       }
 
       winston.debug(`body send to google: ${JSON.stringify(body, null, 2)}`)
-      return client
-        .post(`/models/${model}:generateContent`, body, {
-          params: { key: apiKey }
-        })
-        .then(res => toOpenAIChatResponse(res, model))
+      const response = await client.post(`/models/${model}:generateContent`, body, {
+        params: { key: apiKey },
+      })
+
+      return toOpenAIChatResponse(response, model)
     },
 
-    // '/embeddings': function (params, override) {
-    // }
+    async '/embeddings'(params, override) {
+      const { input } = params
+      const model = override.model || params.model
+      const body = {
+        model,
+        content: {
+          parts: [
+            { text: input },
+          ]
+        }
+      }
+
+      const response = await client.post(`/models/${model}:embedContent`, body, {
+        params: { key: apiKey },
+      })
+
+      const embedding = response.data.embedding.values
+      const openAIEmbeddingResponse = {
+        object: 'list',
+        data: [
+          {
+            object: 'embedding',
+            embedding,
+            index: 0
+          }
+        ],
+        model,
+        // usage to be done
+      }
+
+      return openAIEmbeddingResponse
+    }
   }
 }
 

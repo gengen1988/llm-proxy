@@ -12,7 +12,7 @@ module.exports = function (config) {
   })
 
   return {
-    '/chat/completions'(params, override) {
+    async '/chat/completions'(params, override) {
 
       // handle penalty incompatible
       if (penaltyWhenConflict) {
@@ -21,13 +21,15 @@ module.exports = function (config) {
 
       const body = { ...params, ...override }
       winston.debug(`body send to perplexity: ${JSON.stringify(body, null, 2)}`)
-      return client
-        .post('/chat/completions', body)
-        .then(res => res.data)
-        .catch(err => {
-          winston.debug(`perplexity error response: ${JSON.stringify(err.response.data, null, 2)}`)
-          throw err.response.data.error
-        })
+
+      try {
+        const response = await client.post('/chat/completions', body)
+        return response.data
+      }
+      catch (err) {
+        winston.debug(`perplexity error response: ${JSON.stringify(err.response.data, null, 2)}`)
+        throw err.response.data.error
+      }
     }
   }
 }

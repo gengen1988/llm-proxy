@@ -6,14 +6,16 @@ module.exports = function (config) {
   const client = new OpenAI({ apiKey, baseURL })
 
   return {
-    '/chat/completions'(params, override) {
+    async '/chat/completions'(params, override) {
       const body = { ...params, ...override }
-      return client.chat.completions.create(body)
+      const result = await client.chat.completions.create(body)
+      return result
     },
 
-    '/embeddings'(params, override) {
+    async '/embeddings'(params, override) {
       const body = { ...params, ...override }
-      return client.embeddings.create(body)
+      const result = await client.embeddings.create(body)
+      return result
     }
   }
 }

@@ -16,7 +16,7 @@ This project serves as a reverse proxy, unifying access to various leading AI se
 | OpenAI                 | Yes                  | Yes                   |
 | OpenAI Compatibles     | Yes (config baseURL) | Yes                   |
 | Perplexity AI          | Yes                  | No                    |
-| Vertex AI (Gemini Pro) | Yes                  | No (work in progress) |
+| Google Gemini          | Yes                  | Yes                   |
 | Anthropic              | Yes                  | No                    |
 
 ## Getting Started

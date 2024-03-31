@@ -7,11 +7,11 @@ module.exports = function (config) {
   const client = new Anthropic({ apiKey })
 
   return {
-    '/chat/completions'(params, override) {
+    async '/chat/completions'(params, override) {
       params = extractSystemPrompt(params)
       const body = { ...params, ...override }
-      return client.messages.create(body)
-        .then(toOpenAIChatResponse)
+      const response = await client.messages.create(body)
+      return toOpenAIChatResponse(response)
     }
   }
 }
@@ -26,21 +26,21 @@ function extractSystemPrompt(params) {
   return params
 }
 
-function toOpenAIChatResponse(anthropicChatResponse) {
-  winston.debug(`convert anthropic response: ${JSON.stringify(anthropicChatResponse, null, 2)}`)
+function toOpenAIChatResponse(anthropicClientResponse) {
+  winston.debug(`convert anthropic response: ${JSON.stringify(anthropicClientResponse, null, 2)}`)
   return {
-    id: anthropicChatResponse.id,
+    id: anthropicClientResponse.id,
     object: 'chat.completion',
-    model: anthropicChatResponse.model,
-    usage: anthropicChatResponse.usage,
+    model: anthropicClientResponse.model,
+    usage: anthropicClientResponse.usage,
     choices: [
       {
         index: 0,
         message: {
-          role: anthropicChatResponse.role,
-          content: anthropicChatResponse.content[0].text
+          role: anthropicClientResponse.role,
+          content: anthropicClientResponse.content[0].text,
         },
-        finish_reason: anthropicChatResponse.stop_reason
+        finish_reason: anthropicClientResponse.stop_reason,
       }
     ],
   }

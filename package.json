@@ -11,12 +11,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.17.1",
-    "axios": "^1.6.7",
-    "express": "^4.18.2",
+    "@anthropic-ai/sdk": "^0.17.2",
+    "axios": "^1.6.8",
+    "express": "^4.19.2",
     "nconf": "^0.12.1",
-    "openai": "^4.26.0",
-    "winston": "^3.11.0",
-    "yaml": "^2.3.4"
+    "openai": "^4.31.0",
+    "winston": "^3.13.0",
+    "yaml": "^2.4.1"
   }
 }
