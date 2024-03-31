@@ -5,7 +5,7 @@ log: debug
 
 api:
   # - path: /chat/completions
-  #   provider: vertex-dev
+  #   provider: gemini-dev
   #   override:
   #     model: gemini-1.0-pro
 
@@ -24,10 +24,13 @@ api:
     override:
       model: claude-3-opus-20240229
   
+  # - path: /embeddings
+  #   provider: openai-dev
+
   - path: /embeddings
-    provider: openai-dev
-    # override:
-    #   model: textembedding-gecko-multilingual@001
+    provider: gemini-dev
+    override:
+      model: embedding-001
 
 providers:
   - name: perplexity-dev
@@ -35,9 +38,9 @@ providers:
     apiKey: <REDACTED>
     penaltyWhenConflict: presence # presence or frequency
 
-  - name: vertex-dev
-    module: vertex
-    apiKey: <REDACTED> # apply it in https://aistudio.google.com/
+  - name: gemini-dev
+    module: gemini
+    apiKey: <REDACTED>
 
   - name: openai-dev
     module: openai
